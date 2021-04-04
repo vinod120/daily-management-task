@@ -11,7 +11,18 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import EditIcon from '@material-ui/icons/Edit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import Button from '@material-ui/core/Button';
 import './events.css';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Input from '@material-ui/core/Input';
+import TimePicker from "./TimePicker";
+import { enGB } from "date-fns/locale";
+import { DatePickerCalendar } from "react-nice-dates";
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -86,6 +97,9 @@ const useStyles = makeStyles((theme) => ({
   
 function Events(props) {
     const classes = useStyles()
+    const [date, setDate] = useState();
+    const [time, setTime] = useState();
+
     const [state, setState] = React.useState({
         checkedB: true,
       });
@@ -93,7 +107,15 @@ function Events(props) {
       const handleChange = (event) => {
         setState({ ...state, [event.target.name]: event.target.checked });
       };
+      const [open, setOpen] = React.useState(false);
 
+      const handleClickOpen = () => {
+        setOpen(true);
+      };
+    
+      const handleClose = () => {
+        setOpen(false);
+      };
     return (
         <div>
             {/* <h1>Events Page</h1> */}
@@ -135,6 +157,56 @@ function Events(props) {
                         </IconButton>
                     </CardActions>
                 </Card>
+                <div style={{marginTop:'20px'}}>
+                    <Button variant="contained" color="secondary" onClick={handleClickOpen}>
+                        Add Event
+                    </Button>
+                    <Dialog
+                        open={open}
+                        onClose={handleClose}
+                        aria-labelledby="alert-dialog-title"
+                        aria-describedby="alert-dialog-description"
+                        // style={{border:'1px solid red'}}
+                    >
+                        <DialogTitle id="alert-dialog-title">{"ADD EVENT"}</DialogTitle>
+                        <DialogContent style={{width:'500px'}}>
+                            <div style={{display:'grid', gap:'20px', justifyContent:'center'}}>
+                                <div>
+                                <Input placeholder="Event Title" color="secondary" inputProps={{ 'aria-label': 'description' }} />
+                                </div>
+                                <div>
+                                    <div>
+                                        <TimePicker />
+                                    </div>
+                                    <div>
+                                        <DatePickerCalendar date={date} onDateChange={setDate} locale={enGB} />
+                                    </div>
+                                </div>
+                                <hr style={{margin:'10px 0px'}} />
+                                <strong>Event Details</strong>
+                                <div>
+                                <TextareaAutosize
+                                    rowsMax={20}
+                                    style={{width:'400px'}}
+                                    aria-label="maximum height"
+                                    placeholder="Maximum 4 rows"
+                                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                        ut labore et dolore magna aliqua."
+                                    />
+                                </div>
+                            </div>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose} variant="contained">
+                                Cancel
+                            </Button>
+                            <Button onClick={handleClose} variant="contained" color="secondary" autoFocus>
+                                Submit
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                </div>
             </div>
         </div>
     )

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Paper from '@material-ui/core/Paper';
-import { format } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { DatePickerCalendar } from "react-nice-dates";
 import { makeStyles } from '@material-ui/core/styles';
