@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Paper from '@material-ui/core/Paper';
 import { enGB } from "date-fns/locale";
 import { DatePickerCalendar } from "react-nice-dates";
@@ -25,6 +25,14 @@ function Calendar() {
     const classes = useStyles();
     const [date, setDate] = useState();
     const [time, setTime] = useState();
+
+    useEffect(() => {
+        var today = new Date(),
+        time = today.getHours() + ':' + (today.getMinutes()<10?'0':'') + today.getMinutes();
+        
+        setTime(time);
+        setDate(new Date())
+    }, [])
     return (
         <div>
             {/* <h1>Calendar page</h1> */}
@@ -37,7 +45,7 @@ function Calendar() {
                                 id="time"
                                 label="Time Picker"
                                 type="time"
-                                defaultValue="07:30"
+                                value={time}
                                 className={classes.textField}
                                 InputLabelProps={{
                                 shrink: true,
@@ -49,11 +57,11 @@ function Calendar() {
                             />
                         </form>
                     </div>
-                        <DatePickerCalendar date={date} onDateChange={setDate} locale={enGB} />
+                        <DatePickerCalendar date={date} onDateChange={setDate} locale={enGB}/>
                     </div>
                    
                     <div style={{flex:'0.6'}}>
-                        <Events date={date} onDateChange={setDate} locale={enGB} time={time}/>
+                        <Events date={date} locale={enGB} time={time}/>
                     </div>
                 </div>
             </Paper>

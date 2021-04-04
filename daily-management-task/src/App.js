@@ -1,11 +1,11 @@
 import './App.css';
-import Dashboard from './components/Dashboard';
+import Routes from './routes/Routes';
 
 function App() {
   return (
     <div className="App">
      {/* <h1>testing</h1> */}
-     <Dashboard />
+     <Routes />
     </div>
   );
 }

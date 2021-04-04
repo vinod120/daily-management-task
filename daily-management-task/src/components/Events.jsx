@@ -12,17 +12,20 @@ import EditIcon from '@material-ui/icons/Edit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import Button from '@material-ui/core/Button';
-import './events.css';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Input from '@material-ui/core/Input';
-import TimePicker from "./TimePicker";
 import { enGB } from "date-fns/locale";
 import { DatePickerCalendar } from "react-nice-dates";
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import TextField from '@material-ui/core/TextField';
+import './events.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { getData, postData, } from "../redux/actions";
+import { v4 as uuidv4 } from 'uuid';
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -96,10 +99,27 @@ const useStyles = makeStyles((theme) => ({
   });
   
 function Events(props) {
+  const dispatch = useDispatch()
+  const data = useSelector(state=>state.data.data)
+  console.log(data, "redux data")
+
+  // console.log(props.date && props.date)
+  const check =  props.date ? format(props.date, "dd MMM yyyy", { locale: props.locale }) : "none"
+  // console.log(check)
+
     const classes = useStyles()
     const [date, setDate] = useState();
     const [time, setTime] = useState();
-
+    const [eventTitle, setEventTitle] = useState('')
+    const [eventDetails, setEventDetails] = useState('')
+    useEffect(() => {
+      dispatch(getData())
+      var today = new Date(),
+      time = today.getHours() + ':' + (today.getMinutes()<10?'0':'') + today.getMinutes();
+      
+      setTime(time);
+      setDate(new Date())
+  }, [dispatch])
     const [state, setState] = React.useState({
         checkedB: true,
       });
@@ -116,6 +136,20 @@ function Events(props) {
       const handleClose = () => {
         setOpen(false);
       };
+
+      const handleSubmit = ()=>{
+        handleClose()
+        // console.log(time, format(props.date, "dd MMM yyyy", { locale: props.locale }))
+        const obj ={
+          time: time,
+          date: format(date, "dd MMM yyyy", { locale: enGB }),
+          event_title: eventTitle,
+          event_details: eventDetails,
+          id: uuidv4()
+        }
+        // console.log(obj)
+        dispatch(postData(obj))
+      }
     return (
         <div>
             {/* <h1>Events Page</h1> */}
@@ -126,37 +160,46 @@ function Events(props) {
                 </strong>
             </p>
             <div>
-                <Card className={classes.root}>
-                    <CardHeader
-                     className={classes.subHeader}
-                        avatar={
-                        <IconButton aria-label="settings">
-                            <FormControlLabel
-                                control={<IOSSwitch checked={state.checkedB} onChange={handleChange} name="checkedB"/>}
-                            />
-                        </IconButton>
-                        }
-                        action={
-                        <IconButton aria-label="settings" style={{marginTop:'12px'}}>
-                            <EditIcon />
-                        </IconButton>
-                        }
-                        title="Shrimp and Chorizo Paella"
-                        subheader={props.time && props.time}
-                       
-                    />
-                    <CardContent>
-                        <Typography variant="body2" color="textSecondary" component="p">
-                        This impressive paella is a perfect party dish and a fun meal to cook together with your
-                        guests. Add 1 cup of frozen peas along with the mussels, if you like.
-                        </Typography>
-                    </CardContent>
-                    <CardActions disableSpacing>
-                        <IconButton aria-label="add to favorites">
-                            <FavoriteIcon />
-                        </IconButton>
-                    </CardActions>
-                </Card>
+                {
+                  props.date && data && data
+                  .filter((item)=>item.date === check)
+                  .map((item)=>(
+                    <div style={{margin:'10px 0px'}}>
+                      <Card className={classes.root}>
+                          <CardHeader
+                          className={classes.subHeader}
+                              avatar={
+                              <IconButton aria-label="settings">
+                                  <FormControlLabel
+                                      control={<IOSSwitch checked={state.checkedB} onChange={handleChange} name="checkedB"/>}
+                                  />
+                              </IconButton>
+                              }
+                              action={
+                              <IconButton aria-label="settings" style={{marginTop:'12px'}}>
+                                  <Link to={`/edit/${item.id}`}>
+                                    <EditIcon {...item.id}/>
+                                  </Link>
+                              </IconButton>
+                              }
+                              title={item.event_title}
+                              subheader={item.time && item.time}
+                            
+                          />
+                          <CardContent>
+                              <Typography variant="body2" color="textSecondary" component="p">
+                                {item.event_details}
+                              </Typography>
+                          </CardContent>
+                          <CardActions disableSpacing>
+                              <IconButton aria-label="add to favorites">
+                                  <FavoriteIcon />
+                              </IconButton>
+                          </CardActions>
+                        </Card>
+                      </div>
+                  ))
+                }
                 <div style={{marginTop:'20px'}}>
                     <Button variant="contained" color="secondary" onClick={handleClickOpen}>
                         Add Event
@@ -172,11 +215,31 @@ function Events(props) {
                         <DialogContent style={{width:'500px'}}>
                             <div style={{display:'grid', gap:'20px', justifyContent:'center'}}>
                                 <div>
-                                <Input placeholder="Event Title" color="secondary" inputProps={{ 'aria-label': 'description' }} />
+                                <Input 
+                                placeholder="Event Title" 
+                                color="secondary" 
+                                inputProps={{ 'aria-label': 'description' }} 
+                                onChange={(e)=>setEventTitle(e.target.value)}
+                                />
                                 </div>
                                 <div>
                                     <div>
-                                        <TimePicker />
+                                    <form className={classes.container} noValidate>
+                                      <TextField
+                                          id="time"
+                                          label="Time Picker"
+                                          type="time"
+                                          value={time}
+                                          className={classes.textField}
+                                          InputLabelProps={{
+                                          shrink: true,
+                                          }}
+                                          inputProps={{
+                                          step: 300, // 5 min
+                                          }}
+                                          onChange={(e)=>setTime(e.target.value)}
+                                      />
+                                  </form>
                                     </div>
                                     <div>
                                         <DatePickerCalendar date={date} onDateChange={setDate} locale={enGB} />
@@ -190,8 +253,7 @@ function Events(props) {
                                     style={{width:'400px'}}
                                     aria-label="maximum height"
                                     placeholder="Maximum 4 rows"
-                                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                                        ut labore et dolore magna aliqua."
+                                    onChange={(e)=>setEventDetails(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -200,7 +262,7 @@ function Events(props) {
                             <Button onClick={handleClose} variant="contained">
                                 Cancel
                             </Button>
-                            <Button onClick={handleClose} variant="contained" color="secondary" autoFocus>
+                            <Button onClick={handleSubmit} variant="contained" color="secondary" autoFocus>
                                 Submit
                             </Button>
                         </DialogActions>
